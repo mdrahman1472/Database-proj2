@@ -1,10 +1,18 @@
-# This program adds two numbers
+import MySQLdb
 
-num1 = 1.5
-num2 = 6.3
+# Connect to the database
+con = MySQLdb.connect(host='134.74.126.107',
+                             user='F16336mrahman',
+                             passwd='23148232',
+                             db='F16336mrahman',
+                     
+)
 
-# Add two numbers
-sum = float(num1) + float(num2)
+c = con.cursor()
+c.execute("Select * from sales")
 
-# Display the sum
-print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
+rows = c.fetchall()
+
+for eachRow in rows:
+	print eachRow
+
