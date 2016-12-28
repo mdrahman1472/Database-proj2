@@ -10,7 +10,7 @@ def matchingEngine(cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, 
 	# inseting quote
 	insert_fun (cursor, instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size, seq_nbr, curr_datetime, curr_date)
 	
-	time.sleep(60)
+
 	if bid_price > 0 and bid_size > 0:
 		print "just test"
 
