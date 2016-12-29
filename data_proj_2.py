@@ -1,8 +1,10 @@
-from datetime import datetime # importing for current  date and time
+from datetime import datetime, timedelta # importing for current  date and time
 import time
 import MySQLdb
 import MySQLdb.cursors
-
+import random
+from  decimal import Decimal
+ 
 def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size):
 	
 	curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
@@ -24,15 +26,20 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 	result = cursor.fetchall()	
 	cursor.close()
 	
-	
+	res =[]
 	for row in result:
+		res.append(row)
+
+		
+	for row in res:
+		random.seed()
 		i = 0
 		id = row[0]
 		seq = row[2]
 		symb = row[3]
-		a_p = row[5]
+		a_p = row[5]+Decimal(str(random.uniform(-2,2)))
 		a_s = row[6]
-		b_p = row[7]
+		b_p = row[7]+Decimal(str(random.uniform(-2,2)))
 		b_s = row[8]
 		curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
         	curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
@@ -83,11 +90,11 @@ def clean_up(con):
 
 # clean up with certain time period i.e. delete all whose time difference is more than 10
 def clean_up_with_time(con):
-	curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
+	curr_datetime = (datetime.now()-timedelta(minutes=2)).strftime('%y-%m-%d %H:%M:%S') # string of current datetime
         curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
 	
 	cursor = con.cursor()
-        cursor.execute("DELETE from STOCK_QUOTE WHERE QUOTE_TIME > %s -INTERVAL 1 MINUTE",(curr_datetime))
+        cursor.execute("DELETE from STOCK_QUOTE WHERE QUOTE_TIME < %s",(curr_datetime))
         cursor.close()
 
 	
