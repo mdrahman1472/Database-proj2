@@ -1,35 +1,16 @@
 def test(con):
 	listCl_price = []
 
-	listAllSymb = [] # list for all trading symbol
-	
-	# +++++++++++++++++++++++getting all symbols by quiry ++++++++++++++++++++++
-	
 	cursor = con.cursor()
-        cursor.execute("SELECT DISTINCT TRADING_SYMBOL FROM STOCK_TRADE ORDER BY TRADING_SYMBOL ASC")
-        resultAllSymb = cursor.fetchall()
 
-        for s in resultAllSymb:
-                listAllSymb.append(s[0])
-	
-        cursor.close()
-
-	#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
-	cursor = con.cursor()
-        cursor.execute("SELECT a.`TRADING_SYMBOL`, a.`TRADE_PRICE`, a.`TRADE_TIME` from STOCK_TRADE a, (SELECT TRADING_SYMBOL, MAX(TRADE_TIME) as max_time from STOCK_TRADE GROUP BY TRADING_SYMBOL) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.max_time ORDER BY `a`.`TRADING_SYMBOL` ASC ")
+# sorry for sloppy look of it got bigger since I have get accending order of Trade symbol and there is multiple trade on 
+# same time. I tried to arrange in string to look nice but for some reason in vim editor on lab gave me error of indentatio
+# but ok on my home machine
+        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT max(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, max(TRADE_TIME) as max_time from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.max_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC")
         
 	resultCl_price = cursor.fetchall()
 
-	i = 0
-        for Cl_price in resultCl_price:
-        	if (Cl_price[0] == listAllSymb[i]):        
-			listCl_price.append(Cl_price[1])
-			i = i + 1
 	
-	print(len(listCl_price),"	" , len(listAllSymb))			
-        cursor.close()
-'''	j=0
-	while j < len(listCl_price):
-		print(listAllSymb[j] + "  |  " + listCl_price[j])
-		j = j+1 
-'''
+        for Cl_price in resultCl_price:        
+		listCl_price.append(Cl_price[0])
+
