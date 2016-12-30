@@ -28,7 +28,7 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 	update_hist_time = datetime.strptime(update_hist_time, '%y-%m-%d %H:%M:%S')
 	#---------------------------------------------------------------------------------------------------------------------	
 
-
+	k = 0
 	# keep running whole process inifinty times inside while loop
 	while True:
 		# calling makewave
@@ -89,8 +89,8 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 
 		
 		print(k, " iteration is done")
-
-
+		k = k + 1
+		
 #+++++++++++++++++++++++++++++++++++++++End of Machine Engine function ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 

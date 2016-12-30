@@ -2,7 +2,6 @@ import MySQLdb
 from datetime import datetime
 from data_proj_2 import*
 from history_update import*
-from test import*
 
 # Connect to the database
 con = MySQLdb.connect(host='134.74.126.107',
