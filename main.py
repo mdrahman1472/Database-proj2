@@ -2,6 +2,7 @@ import MySQLdb
 from datetime import datetime
 from data_proj_2 import*
 from history_update import*
+from test import*
 
 # Connect to the database
 con = MySQLdb.connect(host='134.74.126.107',
@@ -40,9 +41,9 @@ bid_size = 0        # BID_SIZE
 #bid_size = input("Enter Bid size: ")
 
 # calling function which has algoritm for matching engine 
-matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size) 
-clean_up_with_time(con)
+#matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size) 
+#clean_up_with_time(con)
 
-update_history(con)
-
+#update_history(con)
+test(con)
 
