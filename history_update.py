@@ -1,13 +1,6 @@
 from datetime import datetime, timedelta # importing for current  date and time
 
 def update_history(con):
-	count = 0
-	cursor = con.cursor()
-        cursor.execute("SELECT INSTRUMENT_ID from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
-        resultCount = result = cursor.fetchone()
-	count = resultCount[0]
-        cursor.close()
-	
 	
 	listId = []
 	listSymb = []
@@ -47,7 +40,7 @@ def update_history(con):
 
 	 # -------------------------- getting Open price ---------------------------------
 	cursor = con.cursor()
-        cursor.execute("SELECT TRADE_PRICE, MIN(TRADE_TIME) from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
+        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT min(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, min(TRADE_TIME) as min_time from STOCK_TRADE WHERE `TRADE_DATE`= CURDATE() GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.min_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC")
         resultOp_price = cursor.fetchall()
        
         for Op_price in resultOp_price:
@@ -61,17 +54,19 @@ def update_history(con):
 
 
 	 # -------------------------- getting Close Price ---------------------------------
-	cursor = con.cursor()
-        cursor.execute("SELECT TRADE_PRICE, MAX(TRADE_TIME) from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
-        resultCl_price = cursor.fetchall()
-       
-        for Cl_price in resultCl_price:
-                listCl_price.append(Cl_price[0])
-               
-               
 
-        cursor.close()
-	
+	cursor = con.cursor()
+
+	# sorry for sloppy look of it got bigger since I have get accending order of Trade symbol and there is multiple trade on 
+	# same time. I tried to arrange in string to look nice but for some reason in vim editor on lab gave me error of indentatio
+	# but ok on my home computer
+        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT max(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, max(TRADE_TIME) as max_time from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.max_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC")
+        
+        resultCl_price = cursor.fetchall()
+
+        for Cl_price in resultCl_price:                    
+                listCl_price.append(Cl_price[0])
+
         # ----------------------------------------------------------------------------------
 
 

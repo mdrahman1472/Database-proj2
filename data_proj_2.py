@@ -32,14 +32,14 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 
 		
 	for row in res:
-		random.seed()
+	#	random.seed()
 		i = 0
 		id = row[0]
 		seq = row[2]
 		symb = row[3]
-		a_p = row[5]+Decimal(str(random.uniform(-2,2)))
+		a_p = row[5]# +Decimal(str(random.uniform(-2,2)))
 		a_s = row[6]
-		b_p = row[7]+Decimal(str(random.uniform(-2,2)))
+		b_p = row[7] #+Decimal(str(random.uniform(-2,2)))
 		b_s = row[8]
 		curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
         	curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
