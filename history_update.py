@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta # importing for current  date and time
 
-def update_history(con):
+def update_history(con, c_time):
 	
 	listId = []
 	listSymb = []
@@ -12,7 +12,7 @@ def update_history(con):
 	
 	# -------------------------- getting instrument id ---------------------------------
 	cursor = con.cursor()
-        cursor.execute("SELECT INSTRUMENT_ID from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
+        cursor.execute("SELECT INSTRUMENT_ID from STOCK_TRADE where TRADE_TIME >= %s  GROUP by TRADING_SYMBOL", (c_time))
         resultId = cursor.fetchall()
        	 
 	for id in resultId:	
@@ -25,7 +25,7 @@ def update_history(con):
 
 	 # -------------------------- getting trade symbol ---------------------------------
 	cursor = con.cursor()
-        cursor.execute("SELECT TRADING_SYMBOL from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
+        cursor.execute("SELECT TRADING_SYMBOL from STOCK_TRADE where TRADE_TIME >= %s  GROUP by TRADING_SYMBOL",(c_time))
         resultSymb = cursor.fetchall()
        
         for symb in resultSymb:
@@ -40,7 +40,7 @@ def update_history(con):
 
 	 # -------------------------- getting Open price ---------------------------------
 	cursor = con.cursor()
-        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT min(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, min(TRADE_TIME) as min_time from STOCK_TRADE WHERE `TRADE_DATE`= CURDATE() GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.min_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC")
+        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT min(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, min(TRADE_TIME) as min_time from STOCK_TRADE WHERE TRADE_TIME >= %s GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.min_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC", (c_time))
         resultOp_price = cursor.fetchall()
        
         for Op_price in resultOp_price:
@@ -60,7 +60,7 @@ def update_history(con):
 	# sorry for sloppy look of it got bigger since I have get accending order of Trade symbol and there is multiple trade on 
 	# same time. I tried to arrange in string to look nice but for some reason in vim editor on lab gave me error of indentatio
 	# but ok on my home computer
-        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT max(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, max(TRADE_TIME) as max_time from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.max_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC")
+        cursor.execute("select top.TRADE_PRICE, top.TRADING_SYMBOL, top.TRADE_SEQ_NBR,top.TRADE_TIME from STOCK_TRADE top, ( SELECT max(a.TRADE_SEQ_NBR) as tm, a.TRADING_SYMBOL as ts, a.TRADE_PRICE as tp, a.TRADE_TIME as tt, a.TRADE_DATE as td from STOCK_TRADE a, ( SELECT TRADE_SEQ_NBR, TRADING_SYMBOL, max(TRADE_TIME) as max_time from STOCK_TRADE where TRADE_TIME >= %s GROUP BY TRADING_SYMBOL ) b where a.TRADING_SYMBOL = b.`TRADING_SYMBOL` AND a.TRADE_TIME = b.max_time group BY `a`.`TRADING_SYMBOL` ASC ) bottom where top.TRADING_SYMBOL = bottom.ts and top.TRADE_SEQ_NBR = bottom.tm and top.TRADE_DATE = bottom.td ORDER BY `top`.`TRADING_SYMBOL` ASC",(c_time))
         
         resultCl_price = cursor.fetchall()
 
@@ -72,7 +72,7 @@ def update_history(con):
 
 	 # -------------------------- getting Low Price ---------------------------------
 	cursor = con.cursor()
-        cursor.execute("SELECT MIN(TRADE_PRICE) from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
+        cursor.execute("SELECT MIN(TRADE_PRICE) from STOCK_TRADE where TRADE_TIME >= %s GROUP by TRADING_SYMBOL",(c_time))
         resultLow = cursor.fetchall()
        
         for low in resultLow:
@@ -87,7 +87,7 @@ def update_history(con):
 
 	 # -------------------------- getting High price---------------------------------
 	cursor = con.cursor()
-        cursor.execute("SELECT MAX(TRADE_PRICE) from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP by TRADING_SYMBOL")
+        cursor.execute("SELECT MAX(TRADE_PRICE) from STOCK_TRADE where TRADE_TIME >= %s GROUP by TRADING_SYMBOL",(c_time))
         resultHigh = cursor.fetchall()
         
         for high in resultHigh:
@@ -102,7 +102,7 @@ def update_history(con):
 
 	 # -------------------------- getting volume ---------------------------------
 	cursor = con.cursor()
-        cursor.execute("select sum(TRADE_SIZE) from STOCK_TRADE where TRADE_DATE = CURDATE() GROUP BY TRADING_SYMBOL")
+        cursor.execute("select sum(TRADE_SIZE) from STOCK_TRADE where TRADE_TIME >= %s GROUP BY TRADING_SYMBOL",(c_time))
         resultVol = cursor.fetchall()
         
         for vol in resultVol:
@@ -123,3 +123,11 @@ def update_history(con):
 		cursor.execute("INSERT INTO STOCK_HISTORY (INSTRUMENT_ID, TRADE_DATE,  TRADING_SYMBOL, OPEN_PRICE, CLOSE_PRICE, LOW_PRICE, HIGH_PRICE, VOLUME) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)", (listId[i],curr_date, listSymb[i], listOp_price[i], listCl_price[i], listLow[i], listHigh[i], listVol[i]))
 		i = i+1
 		cursor.close()
+	
+	print "previous datetime from update history: ", c_time
+	c_time = datetime.now().strftime('%y-%m-%d %H:%M:%S')
+	c_time = datetime.strptime(c_time, '%y-%m-%d %H:%M:%S')
+	print "updated datetime from update history: ", c_time
+
+	return c_time
+

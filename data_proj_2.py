@@ -4,6 +4,8 @@ import MySQLdb
 import MySQLdb.cursors
 import random
 from  decimal import Decimal
+from history_update import*
+
  
 def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size):
 	
@@ -15,53 +17,86 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 	# insert quote
 	#insert_fun (con, cursor, instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size, seq_nbr, curr_datetime, curr_date)
 	
+	#---------------------------------datetime for cheking when to update stock history ----------------------------------	
+	c_datetime_hist_func = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
+    	c_datetime_hist_func = datetime.strptime(c_datetime_hist_func, '%y-%m-%d %H:%M:%S') # converting to datetime format	
+	timeInerval_hist_func = c_datetime_hist_func + timedelta(minutes= 5)
+	#---------------------------------------------------------------------------------------------------------------------
+
+	#--------------------------------datetime to update history of all trades after this time-----------------------------
+	update_hist_time = datetime.now().strftime('%y-%m-%d %H:%M:%S')
+	update_hist_time = datetime.strptime(update_hist_time, '%y-%m-%d %H:%M:%S')
+	#---------------------------------------------------------------------------------------------------------------------	
 
 
-	# calling makewave
-	cursor.execute("call make_wave()")	
-	cursor.close()
-	
-	cursor = con.cursor()
-	cursor.execute("select * from STOCK_QUOTE_WAVE")	
-	result = cursor.fetchall()	
-	cursor.close()
-	
-	res =[]
-	for row in result:
-		res.append(row)
+	# keep running whole process inifinty times inside while loop
+	while True:
+		# calling makewave
+		cursor.execute("call make_wave()")	
+		cursor.close()
+		
+# ----------------------------------------------------------------------------------------------------------------------------------
+# getting all necessary data of field from makewave and process it to send check bid insert procedure to inser in stock quote 
+		cursor = con.cursor()
+		cursor.execute("select * from STOCK_QUOTE_WAVE")	
+		result = cursor.fetchall()	
+		cursor.close()
+		
+		res =[]
+		for row in result:
+			res.append(row)
+
+			
+		for row in res:
+		#	random.seed() 
+			i = 0
+			id = row[0]
+			seq = row[2]
+			symb = row[3]
+			a_p = row[5]# +Decimal(str(random.uniform(-2,2))) you can comment of to  use to test of  fluctuate more
+			a_s = row[6]
+			b_p = row[7] #+Decimal(str(random.uniform(-2,2)))
+			b_s = row[8]
+			curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
+			curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
+			curr_date = datetime.now().date() # current date only
+			i = i+1 # icrementing i 
+
+			cursor = con.cursor()
+			# check if it is a bid then call procedure
+			if b_s > 0:
+				arg= [id,curr_date, seq, symb, curr_datetime, a_p,a_s, b_p, b_s]
+				cursor.callproc("check_bid_insert",arg)
+			else:
+				cursor.execute("INSERT INTO STOCK_QUOTE (INSTRUMENT_ID, QUOTE_DATE, QUOTE_SEQ_NBR, TRADING_SYMBOL, QUOTE_TIME, ASK_PRICE, ASK_SIZE, BID_PRICE, BID_SIZE) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)", (id,curr_date, seq, symb, curr_datetime, a_p,a_s, b_p, b_s))
+					
+			cursor.close()
+#--------------------------------------------------------------------------------------------------------------------------------------
+
+		# deleting all the quotes that has sold indicated by -1
+		clean_up(con)
+		
+		# clean up according to time interval
+		clean_up_with_time(con)
+
+		# calling updat estock history which is located on history_update.py
+		if c_datetime_hist_func > timeInerval_hist_func:
+			print("stock history updating")
+			update_hist_time = update_history(con, update_hist_time)	
+			timeInerval_hist_func = c_datetime_hist_func + timedelta(minutes = 5)
+		c_datetime_hist_func = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
+		c_datetime_hist_func = datetime.strptime(c_datetime_hist_func, '%y-%m-%d %H:%M:%S') # converting to datetime format
 
 		
-	for row in res:
-	#	random.seed()
-		i = 0
-		id = row[0]
-		seq = row[2]
-		symb = row[3]
-		a_p = row[5]# +Decimal(str(random.uniform(-2,2)))
-		a_s = row[6]
-		b_p = row[7] #+Decimal(str(random.uniform(-2,2)))
-		b_s = row[8]
-		curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
-        	curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
-        	curr_date = datetime.now().date() # current date only
-		i = i+1 # icrementing i 
-
-		cursor = con.cursor()
-		# check if it is a bid then call procedure
-		if b_s > 0:
-			arg= [id,curr_date, seq, symb, curr_datetime, a_p,a_s, b_p, b_s]
-			cursor.callproc("check_bid_insert",arg)
-		else:
-			cursor.execute("INSERT INTO STOCK_QUOTE (INSTRUMENT_ID, QUOTE_DATE, QUOTE_SEQ_NBR, TRADING_SYMBOL, QUOTE_TIME, ASK_PRICE, ASK_SIZE, BID_PRICE, BID_SIZE) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)", (id,curr_date, seq, symb, curr_datetime, a_p,a_s, b_p, b_s))
-				
-		cursor.close()
+		print(k, " iteration is done")
 
 
-	# deleting all the quotes that has sold indicated by -1
-	clean_up(con)
-	
-	# clean up according to time interval
-	clean_up_with_time(con)
+#+++++++++++++++++++++++++++++++++++++++End of Machine Engine function ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
 
 
 
