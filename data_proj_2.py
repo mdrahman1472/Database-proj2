@@ -1,3 +1,6 @@
+# Author: MD Rahman, Database final project
+# This file has several functions defination but MatchingEngine() is main function which call others functions when needed
+
 from datetime import datetime, timedelta # importing for current  date and time
 import time
 import MySQLdb
@@ -7,20 +10,23 @@ from  decimal import Decimal
 from history_update import*
 
  
-def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size):
+def matchingEngine(con,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size):
 	
+	#---------------------------------- First trade that will inserted by user---------------------------------------------
 	curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
 	curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
 	curr_date = datetime.now().date() # current date only
 	
-	#seq_nbr = getSeqNbr(con, cursor, trade_symb) # genarating QUOTE_SEQ_NBR
+	seq_nbr = getSeqNbr(con, trade_symb) # genarating QUOTE_SEQ_NBR
 	# insert quote
-	#insert_fun (con, cursor, instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size, seq_nbr, curr_datetime, curr_date)
-	
+	insert_fun (con, instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size, seq_nbr, curr_datetime, curr_date)
+	#----------------------------------------------------------------------------------------------------------------------
+		
+
 	#---------------------------------datetime for cheking when to update stock history ----------------------------------	
 	c_datetime_hist_func = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
     	c_datetime_hist_func = datetime.strptime(c_datetime_hist_func, '%y-%m-%d %H:%M:%S') # converting to datetime format	
-	timeInerval_hist_func = c_datetime_hist_func + timedelta(minutes= 5)
+	timeInerval_hist_func = c_datetime_hist_func + timedelta(minutes= 10) # upadte STOCK_HISTORY in every 10 minutes
 	#---------------------------------------------------------------------------------------------------------------------
 
 	#--------------------------------datetime to update history of all trades after this time-----------------------------
@@ -83,8 +89,8 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 		# calling update stock history which is located on history_update.py
 		if c_datetime_hist_func > timeInerval_hist_func:
 			print("stock history updating")
-			update_hist_time = update_history(con, update_hist_time)	
-			timeInerval_hist_func = c_datetime_hist_func + timedelta(minutes = 5)
+			update_hist_time = update_history(con, update_hist_time) # calling function to update stock history	
+			timeInerval_hist_func = c_datetime_hist_func + timedelta(minutes = 10) #upadte STOCK_HISTORY in every 10 minutes
 		c_datetime_hist_func = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
 		c_datetime_hist_func = datetime.strptime(c_datetime_hist_func, '%y-%m-%d %H:%M:%S') # converting to datetime format
 
@@ -103,18 +109,22 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 
 
 # return QUOTE_SEQ_NBR
-def getSeqNbr(con, cursor, trade_symb):
+def getSeqNbr(con, trade_symb):
+	cursor = con.cursor()
 	cursor.execute("select count(*) from STOCK_QUOTE where TRADING_SYMBOL = %s;",trade_symb)
 	result = cursor.fetchone()
 	# getting current se_nbr 	
 	seq_nbr = result[0] + 1 # adding 1 for new insert number
+	cursor.close()
 	return seq_nbr 
 	
 
 # insert function
-def insert_fun(con, cursor, instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size, seq_nbr, curr_datetime, curr_date):
+def insert_fun(con,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size, seq_nbr, curr_datetime, curr_date):
+
+	cursor = con.cursor()
 	cursor.execute("INSERT INTO STOCK_QUOTE (INSTRUMENT_ID, QUOTE_DATE, QUOTE_SEQ_NBR, TRADING_SYMBOL, QUOTE_TIME, ASK_PRICE, ASK_SIZE, BID_PRICE, BID_SIZE) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)", (instr_id,curr_date, seq_nbr, trade_symb, curr_datetime, ask_price, ask_size, bid_price, bid_size))
-	
+	cursor.close()
 	
 	 	
 #clean up function delete all quote that has been sold
@@ -127,7 +137,7 @@ def clean_up(con):
 
 # clean up with certain time period i.e. delete all whose time difference is more than 10
 def clean_up_with_time(con):
-	print "Delete all quotes that are living on poll more than 5"
+	print "Delete all quotes that are living on poll more than 5 minutes"
 	curr_datetime = (datetime.now()-timedelta(minutes=5)).strftime('%y-%m-%d %H:%M:%S') # string of current datetime
         curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
 	

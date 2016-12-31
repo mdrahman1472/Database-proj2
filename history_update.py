@@ -1,3 +1,6 @@
+# Author: MD Rahman, Database final project
+# This file has function defination which update STOCK_HISTORY
+ 
 from datetime import datetime, timedelta # importing for current  date and time
 
 def update_history(con, c_time):
@@ -124,10 +127,11 @@ def update_history(con, c_time):
 		i = i+1
 		cursor.close()
 	
-	print "previous datetime from update history: ", c_time
+	# updating time to current time and return it so next time this function will get this time and update history of 
+	# all trades after this time
 	c_time = datetime.now().strftime('%y-%m-%d %H:%M:%S')
 	c_time = datetime.strptime(c_time, '%y-%m-%d %H:%M:%S')
-	print "updated datetime from update history: ", c_time
+
 
 	return c_time
 

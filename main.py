@@ -1,3 +1,6 @@
+# Author: MD Rahman, Database final project
+# This file is main() function. You need to run this file 
+
 import MySQLdb
 from datetime import datetime
 from data_proj_2 import*
@@ -10,16 +13,13 @@ con = MySQLdb.connect(host='134.74.126.107',
                              db='F16336team8',
                      
 )
-con.autocommit(True)
-cursor = con.cursor()
-# c.execute("Select * from sales")
+con.autocommit(True) # commit all sql automaticaly 
 
-# rows = c.fetchall()
 
-curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
-curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
+#curr_datetime = datetime.now().strftime('%y-%m-%d %H:%M:%S') # string of current datetime
+#curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
 
-curr_date = datetime.now().date() # current date only
+#curr_date = datetime.now().date() # current date only
 
 
 # declaring variables and initializing them
@@ -32,17 +32,14 @@ bid_price = 0.0     # BID_PRICE
 bid_size = 0        # BID_SIZE
 
 #Taking input from user
-#instr_id = input("Enter Instrument ID: ")
-#trade_symb = input('Enter Trading Symbol(inside " " mark): ')
-#ask_price = input("Enter Ask price: ")
-#ask_size = input("Enter Ask size: ")
-#bid_price = input("Enter Bid price: ")
-#bid_size = input("Enter Bid size: ")
+instr_id = input("Enter Instrument ID: ")
+trade_symb = input('Enter Trading Symbol(inside " " mark): ')
+ask_price = input("Enter Ask price: ")
+ask_size = input("Enter Ask size: ")
+bid_price = input("Enter Bid price: ")
+bid_size = input("Enter Bid size: ")
 
 # calling function which has algoritm for matching engine 
-matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size) 
-#clean_up_with_time(con)
+matchingEngine(con, instr_id, trade_symb, ask_price, ask_size, bid_price, bid_size) 
 
-#update_history(con)
-#curr_datetime = test(con,curr_datetime)
-#print curr_datetime
+
