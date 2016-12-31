@@ -28,10 +28,11 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 	update_hist_time = datetime.strptime(update_hist_time, '%y-%m-%d %H:%M:%S')
 	#---------------------------------------------------------------------------------------------------------------------	
 
-	k = 0
+	k = 1
 	# keep running whole process inifinty times inside while loop
 	while True:
 		# calling makewave
+		cursor = con.cursor()
 		cursor.execute("call make_wave()")	
 		cursor.close()
 		
@@ -79,7 +80,7 @@ def matchingEngine(con, cursor,instr_id, trade_symb, ask_price, ask_size, bid_pr
 		# clean up according to time interval
 		clean_up_with_time(con)
 
-		# calling updat estock history which is located on history_update.py
+		# calling update stock history which is located on history_update.py
 		if c_datetime_hist_func > timeInerval_hist_func:
 			print("stock history updating")
 			update_hist_time = update_history(con, update_hist_time)	
@@ -116,8 +117,9 @@ def insert_fun(con, cursor, instr_id, trade_symb, ask_price, ask_size, bid_price
 	
 	
 	 	
-#clean up function
+#clean up function delete all quote that has been sold
 def clean_up(con):
+	print "sold quotes are deleting"
 	cursor = con.cursor()
 	cursor.execute("DELETE from STOCK_QUOTE WHERE (ASK_SIZE = -1 ) OR (BID_SIZE = -1)")
 	cursor.close()
@@ -125,7 +127,8 @@ def clean_up(con):
 
 # clean up with certain time period i.e. delete all whose time difference is more than 10
 def clean_up_with_time(con):
-	curr_datetime = (datetime.now()-timedelta(minutes=2)).strftime('%y-%m-%d %H:%M:%S') # string of current datetime
+	print "Delete all quotes that are living on poll more than 5"
+	curr_datetime = (datetime.now()-timedelta(minutes=5)).strftime('%y-%m-%d %H:%M:%S') # string of current datetime
         curr_datetime = datetime.strptime(curr_datetime, '%y-%m-%d %H:%M:%S') # converting to datetime format
 	
 	cursor = con.cursor()
