@@ -8,8 +8,8 @@ from history_update import*
 
 # Connect to the database
 con = MySQLdb.connect(host='134.74.126.107',
-                             user='F16336mrahman',
-                             passwd='23148232',
+                             user='####',
+                             passwd='####',
                              db='F16336team8',
                      
 )
